@@ -6,6 +6,7 @@ import pygame
 from pygame import surfarray
 import time
 
+pygame.init()
 cap = cv2.VideoCapture(0)
 
 FINAL_MIN = np.array([0, 210, 0])
@@ -96,51 +97,73 @@ while True:
 
 print "Calibration complete..."
 
-fps = 2
+fps = 20
 t_frame = 1./fps
 curr_frame_delay = 0
 curr_frame_start = 0
 skip_render = False
+execute = True
+fn = 0
 
 # if mean_boundary is not None and len(mean_boundary)==4:
 
+myfont = pygame.font.Font(None, 60)
+
 while True:
-    curr_frame_start = time.time()
     ret, frame = cap.read()
 
-    #quad
-    src_points = np.float32([mean_quad[0][0],mean_quad[1][0],mean_quad[2][0],mean_quad[3][0]])
+    if execute:
+        curr_frame_start = time.time()
 
-    #800x600 things
-    dst_points = np.float32([[800,0],[0,0],[0,600],[800,600]])
-    perspectiveT = cv2.getPerspectiveTransform(src_points, dst_points)
+        #quad
+        src_points = np.float32([mean_quad[0][0],mean_quad[1][0],
+                                 mean_quad[2][0],mean_quad[3][0]])
 
-    cropped_frame = cv2.warpPerspective(frame, perspectiveT, (800,600))
-    screen.fill((np.random.random()*255,np.random.random()*255,np.random.random()*255))
+        #800x600 things
+        dst_points = np.float32([[800,0],[0,0],[0,600],[800,600]])
+        perspectiveT = cv2.getPerspectiveTransform(src_points, dst_points)
 
-    if not skip_render:
+        cropped_frame = cv2.warpPerspective(frame, perspectiveT, (800,600))
+        cropped_frame = np.swapaxes(cropped_frame,0,1)
+        cropped_frame = cv2.resize(cropped_frame,(800,600),interpolation=cv2.INTER_CUBIC)
+        cropped_frame = cv2.flip(cropped_frame,0)
+        screen.fill((np.random.random()*255,np.random.random()*255,np.random.random()*255))
+        label = myfont.render("%d" % fn, 1, (255,255,0))
+        screen.blit(label, (100, 100))
+
+
+        # render
         pygame.display.flip()
 
         pygame_frame = surfarray.array3d(screen)
         pygame_frame = np.swapaxes(pygame_frame, 0, 1)
         pygame_frame = cv2.cvtColor(pygame_frame, cv2.COLOR_BGR2RGB)
 
-        diff_frame = np.abs(cropped_frame-pygame_frame)
+        last_pygame_frame = pygame_frame
+
+        diff_frame = np.abs(cropped_frame-last_pygame_frame)
         gray_scale = cv2.cvtColor(diff_frame, cv2.COLOR_BGR2GRAY)
         ret, thresh = cv2.threshold(gray_scale, 127, 255, cv2.THRESH_BINARY)
 
-        cv2.imshow('diff', thresh)
-        cv2.imshow('cropped', cropped_frame)
-        cv2.imshow('pygame', pygame_frame)
+        im2, contours, hierarchy = cv2.findContours(thresh,
+                                    cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(cropped_frame, contours, -1, (0,0,255),3)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+
+        cv2.imshow('diff', gray_scale)
+        cv2.imshow('cropped', cropped_frame)
+        #cv2.imshow('pygame', pygame_frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+        fn = (fn+1)%10
 
     curr_frame_delay = time.time() - curr_frame_start
     if t_frame > curr_frame_delay:
-        skip_render = False
-        time.sleep(t_frame - curr_frame_delay)
+        execute = False
+        # time.sleep(t_frame - curr_frame_delay)
     else:
-        print("Update too slow\nOvershoot: %f" % (curr_frame_delay - t_frame))
-        skip_render = True
+        execute = True
+        # print("Update too slow\nOvershoot: %f" % (curr_frame_delay - t_frame))
 
