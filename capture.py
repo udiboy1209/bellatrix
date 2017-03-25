@@ -8,8 +8,6 @@ import time
 
 cap = cv2.VideoCapture(0)
 
-cv2.namedWindow('contour')
-
 FINAL_MIN = np.array([0, 210, 0])
 FINAL_MAX = np.array([255, 255, 255])
 
@@ -96,7 +94,6 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-        
 print "Calibration complete..."
 
 fps = 2
@@ -146,7 +143,4 @@ while True:
     else:
         print("Update too slow\nOvershoot: %f" % (curr_frame_delay - t_frame))
         skip_render = True
-
-
-
 
