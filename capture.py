@@ -19,12 +19,15 @@ pygame.display.flip()
 
 MEAN_BOUNDARY_SIZE = 100.0
 sum_boundary = []
+sum_quad = None
+mean_quad = None
 mean_boundary = None
 sum_boundary_count = 0
 
 def calibrate_screen(frame):
 
     global mean_boundary,MEAN_BOUNDARY_SIZE,sum_boundary,sum_boundary_count
+    global mean_quad,sum_quad
 
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -57,13 +60,16 @@ def calibrate_screen(frame):
         if maxX-minX>0 and maxY-minY>0 and sum_boundary_count<MEAN_BOUNDARY_SIZE:
             if sum_boundary_count==0:
                 sum_boundary.append([minX,maxX,minY,maxY])
+                sum_quad = screenRect
             else:
                 sum_boundary = np.insert(sum_boundary,0,[minX,maxX,minY,maxY],axis=0)
+                sum_quad = sum_quad+screenRect
             sum_boundary_count = sum_boundary_count + 1
             print (sum_boundary_count/MEAN_BOUNDARY_SIZE)*100," % complete..."
 
     if sum_boundary_count>=MEAN_BOUNDARY_SIZE and mean_boundary is None:
         mean_boundary = np.sum(sum_boundary,axis=0)/sum_boundary_count
+        mean_quad = sum_quad/sum_boundary_count
 
 
 raw_input("Press any key to continue to calibration...")
@@ -87,10 +93,12 @@ print "Calibration complete..."
 while True:
     ret, frame = cap.read()
 
+    #print mean_boundary, mean_quad
+    #TODO: insert transform between mean_boundary and mean_quad. print both to realize how to identify all four
+    # coordinates from mean_boundary
     if mean_boundary is not None and len(mean_boundary)==4:
         cropped_frame = frame[mean_boundary[2]:mean_boundary[3],mean_boundary[0]:mean_boundary[1]]
         cv2.imshow('cropped', cropped_frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-
