@@ -93,12 +93,28 @@ print "Calibration complete..."
 while True:
     ret, frame = cap.read()
 
-    #print mean_boundary, mean_quad
-    #TODO: insert transform between mean_boundary and mean_quad. print both to realize how to identify all four
-    # coordinates from mean_boundary
+    #quad
+    src_points = np.float32([mean_quad[0][0],mean_quad[1][0],mean_quad[2][0],mean_quad[3][0]])
+
+    #800x600 things
+    dst_points = np.float32([[800,0],[0,0],[0,600],[800,600]])
+    perspectiveT = cv2.getPerspectiveTransform(src_points, dst_points)
+
     if mean_boundary is not None and len(mean_boundary)==4:
-        cropped_frame = frame[mean_boundary[2]:mean_boundary[3],mean_boundary[0]:mean_boundary[1]]
+        cropped_frame = cv2.warpPerspective(frame, perspectiveT, (800,600))
+        screen.fill((np.random.random()*255,np.random.random()*255,np.random.random()*255))
+
+        from pygame import surfarray
+        pygame_frame = surfarray.array3d(screen)
+        pygame_frame = np.swapaxes(pygame_frame, 0, 1)
+
+        diff_frame = cropped_frame-pygame_frame
+        gray_scale = cv2.cvtColor(diff_frame, cv2.COLOR_BGR2GRAY)
+        ret, thresh = cv2.threshold(gray_scale, 127, 255, cv2.THRESH_BINARY)
+        cv2.imshow('diff', thresh)
         cv2.imshow('cropped', cropped_frame)
+        cv2.imshow('pygame', pygame_frame)
+        pygame.display.flip()
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
