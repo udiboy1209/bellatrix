@@ -9,13 +9,13 @@ cap = cv2.VideoCapture(0)
 FINAL_MIN = np.array([0, 210, 0])
 FINAL_MAX = np.array([255, 255, 255])
 
-# (width, height) = (1300,700)
+(width, height) = (800,600)
 
-# screen = pygame.display.set_mode((width, height))
-# screen.fill((0,255,0))
-# pygame.display.set_caption('HackU game')
+screen = pygame.display.set_mode((width, height))
+screen.fill((0,255,0))
+pygame.display.set_caption('HackU game')
 
-# pygame.display.flip()
+pygame.display.flip()
 
 MEAN_BOUNDARY_SIZE = 100.0
 sum_boundary = []
@@ -64,28 +64,33 @@ def calibrate_screen(frame):
 
     if sum_boundary_count>=MEAN_BOUNDARY_SIZE and mean_boundary is None:
         mean_boundary = np.sum(sum_boundary,axis=0)/sum_boundary_count
-        print "calibration complete..."
 
+
+raw_input("Press any key to continue to calibration...")
+print "Calibration begins..."
+
+#########################
+## Calibration Routine ##
+#########################
 
 while True:
     ret, frame = cap.read()
 
-    #########################
-    ## Calibration Routine ##
-    #########################
-
     if mean_boundary is None:
         calibrate_screen(frame)
 
-    ########################
+    if mean_boundary is not None:
+        break
         
+print "Calibration complete..."
+
+while True:
+    ret, frame = cap.read()
+
     if mean_boundary is not None and len(mean_boundary)==4:
         cropped_frame = frame[mean_boundary[2]:mean_boundary[3],mean_boundary[0]:mean_boundary[1]]
         cv2.imshow('cropped', cropped_frame)
 
-    #cv2.drawContours(frame, [screenRect], -1, (0,0,255), 3)
-
-    #cv2.imshow('video', frame)
-
     if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        break
+
