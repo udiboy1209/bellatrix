@@ -6,6 +6,7 @@ import pygame
 from pygame import surfarray
 import time
 
+pygame.init()
 cap = cv2.VideoCapture(0)
 
 FINAL_MIN = np.array([0, 210, 0])
@@ -25,6 +26,8 @@ sum_quad = None
 mean_quad = None
 mean_boundary = None
 sum_boundary_count = 0
+nfcount = 0
+max_hit = None
 
 def calibrate_screen(frame):
 
@@ -96,51 +99,114 @@ while True:
 
 print "Calibration complete..."
 
-fps = 2
+fps = 30
 t_frame = 1./fps
 curr_frame_delay = 0
 curr_frame_start = 0
 skip_render = False
+execute = True
+fn = 0
+
+kptrace = []
 
 # if mean_boundary is not None and len(mean_boundary)==4:
 
+myfont = pygame.font.Font(None, 60)
+
 while True:
-    curr_frame_start = time.time()
     ret, frame = cap.read()
 
-    #quad
-    src_points = np.float32([mean_quad[0][0],mean_quad[1][0],mean_quad[2][0],mean_quad[3][0]])
+    if execute:
+        curr_frame_start = time.time()
 
-    #800x600 things
-    dst_points = np.float32([[800,0],[0,0],[0,600],[800,600]])
-    perspectiveT = cv2.getPerspectiveTransform(src_points, dst_points)
+        #quad
+        src_points = np.float32([mean_quad[0][0],mean_quad[1][0],
+                                 mean_quad[2][0],mean_quad[3][0]])
 
-    cropped_frame = cv2.warpPerspective(frame, perspectiveT, (800,600))
-    screen.fill((np.random.random()*255,np.random.random()*255,np.random.random()*255))
+        #800x600 things
+        dst_points = np.float32([[800,0],[0,0],[0,600],[800,600]])
+        perspectiveT = cv2.getPerspectiveTransform(src_points, dst_points)
 
-    if not skip_render:
+        cropped_frame = cv2.warpPerspective(frame, perspectiveT, (800,600))
+        # cropped_frame = np.swapaxes(cropped_frame,0,1)
+        # cropped_frame = cv2.resize(cropped_frame,(800,600),
+        #             interpolation=cv2.INTER_CUBIC)
+        # cropped_frame = cv2.flip(cropped_frame,0)
+        screen.fill((255, 255, 255))
+        if max_hit:
+            pygame.draw.circle(screen, (0, 0, 255),
+                               (int(max_hit.pt[0]),int(max_hit.pt[1])),
+                               int(max_hit.size/2))
+        # label = myfont.render("%d" % fn, 1, (255,255,0))
+        # screen.blit(label, (100, 100))
+
+
+        # render
         pygame.display.flip()
 
         pygame_frame = surfarray.array3d(screen)
         pygame_frame = np.swapaxes(pygame_frame, 0, 1)
         pygame_frame = cv2.cvtColor(pygame_frame, cv2.COLOR_BGR2RGB)
 
-        diff_frame = np.abs(cropped_frame-pygame_frame)
-        gray_scale = cv2.cvtColor(diff_frame, cv2.COLOR_BGR2GRAY)
-        ret, thresh = cv2.threshold(gray_scale, 127, 255, cv2.THRESH_BINARY)
+        last_pygame_frame = pygame_frame
 
-        cv2.imshow('diff', thresh)
-        cv2.imshow('cropped', cropped_frame)
-        cv2.imshow('pygame', pygame_frame)
+        hsv_crop = cv2.cvtColor(cropped_frame, cv2.COLOR_BGR2HSV)
+        hsv_pgam = cv2.cvtColor(pygame_frame, cv2.COLOR_BGR2HSV)
+        diff_frame = np.abs(hsv_crop-hsv_pgam)
+        thresh = cv2.inRange(diff_frame, np.array([0,100,100],np.uint8),
+                    np.array([255,255,255],np.uint8))
+        thresh = 255-thresh
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+        blob_params = cv2.SimpleBlobDetector_Params()
+
+        blob_params.filterByCircularity = False
+        blob_params.filterByConvexity = False
+        blob_params.filterByInertia = True
+        blob_params.minInertiaRatio = 0.2
+
+        detector = cv2.SimpleBlobDetector_create(blob_params)
+        keypoints = detector.detect(thresh)
+
+        max_hit = None
+
+        if len(keypoints) > 0:
+            kptrace.extend(keypoints)
+            nfcount = 0
+        else:
+            nfcount = nfcount + 1
+            if nfcount>5:
+                nfcount = 0
+                if len(kptrace) > 0:
+                    max_hit = max(kptrace, key=lambda x:x.size)
+                    kptrace = []
+                    print("%s - %d" % (max_hit.pt, max_hit.size))
+
+        im_with_keypoints = cv2.drawKeypoints(cropped_frame, kptrace,
+                    np.array([]), (0,0,255),
+                    cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        # im2, contours, hierarchy = cv2.findContours(thresh,
+        #                             cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        # cv2.drawContours(cropped_frame, contours, -1, (0,0,255),3)
+
+
+        cv2.imshow('diff', diff_frame)
+        cv2.imshow('thresh', thresh)
+        cv2.imshow('cropped', im_with_keypoints)
+        #cv2.imshow('pygame', pygame_frame)
+
+    cv2key = cv2.waitKey(1)
+    if cv2key & 0xFF == ord('q'):
         break
+    if cv2key & 0xFF == ord('c'):
+        kptrace = []
+
+        # fn = (fn+1)%10
 
     curr_frame_delay = time.time() - curr_frame_start
     if t_frame > curr_frame_delay:
-        skip_render = False
-        time.sleep(t_frame - curr_frame_delay)
+        execute = False
+        # time.sleep(t_frame - curr_frame_delay)
     else:
-        print("Update too slow\nOvershoot: %f" % (curr_frame_delay - t_frame))
-        skip_render = True
+        execute = True
+        # print("Update too slow\nOvershoot: %f" % (curr_frame_delay - t_frame))
 
