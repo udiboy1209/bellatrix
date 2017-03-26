@@ -15,7 +15,7 @@ def play():
     screen.set_alpha(0)
     keys = [False, False, False, False]
 
-    game_time = 60000
+    game_time = 10000000000
     game_start = True
     font = pygame.font.Font("/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash/resources/fonts/csb.ttf", 27)
     pygame.font.init()
@@ -31,6 +31,10 @@ def play():
     game_over = pygame.image.load(common_path + "game_over.png")
     card = pygame.image.load(common_path + "card.png")
     start_screen = pygame.image.load(common_path + "start_game.png")
+    menu = pygame.image.load("Menu.png")
+    menu_rect = pygame.Rect(menu.get_rect())
+    menu_rect.top = 30
+    menu_rect.left = 610
 
     delay = False
     full_dive = False
@@ -59,6 +63,7 @@ def play():
         screen.fill(0)
         screen.set_alpha(0)
         screen.blit(background, (0, 0))
+        screen.blit(menu, (610, 30))
         if game_start:
             if not time_paused:
                 screen.blit(card, (20, 20))
@@ -85,9 +90,7 @@ def play():
                         exit(0)
                     if event.type == pygame.KEYDOWN or event.type == MOUSEBUTTONDOWN:
                         if event.type == MOUSEBUTTONDOWN:
-                            print "Hello"
                             position = pygame.mouse.get_pos()
-                            print gk_pic.get_rect()
                             gk_rect = pygame.Rect((gk_pos[0], gk_pos[1], gk_pic.get_width(), gk_pic.get_height()))
                             if gk_pic == gk_ltdive:
                                 gk_rect.top
@@ -95,6 +98,8 @@ def play():
                             gk_rect.left = gk_pos[0]
                             if gk_rect.collidepoint(position):
                                 score += 10
+                            if menu_rect.collidepoint(position):
+                                return
 
                     if event.type == pygame.KEYUP:
                         if event.key == K_LEFT:
@@ -199,7 +204,7 @@ def play():
     if exitcode == 0:
         screen.blit(background, (0, 0))
         screen.blit(game_over, (250, 150))
-        font = pygame.font.Font("resources/fonts/csb.ttf", 45)
+        font = pygame.font.Font("/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash/resources/fonts/csb.ttf", 45)
         scores_file.write(str(score) + "\n")
         score_text = font.render("SCORE : " + str(score), True, text_color)
         scores_file.close()
@@ -208,7 +213,6 @@ def play():
         scores_file.close()
         scores = [score_line.strip() for score_line in scores]
         scores.sort(key=float, reverse = True)
-        print scores
         best_score_text = font.render("BEST SCORE : " + scores[0], True, text_color)
         best_score_rect = best_score_text.get_rect()
         best_score_rect.left = 440
@@ -220,8 +224,16 @@ def play():
         screen.blit(best_score_text, best_score_rect)
 
     while 1:
+        menu_rect = pygame.Rect(menu.get_rect())
+        menu_rect.top = 30
+        menu_rect.left = 610
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit(0)
+            if event.type == pygame.KEYDOWN or event.type == MOUSEBUTTONDOWN:
+                position = pygame.mouse.get_pos()
+                if event.type == MOUSEBUTTONDOWN:
+                    if menu_rect.collidepoint(position):
+                        return
         pygame.display.flip()

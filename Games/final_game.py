@@ -8,13 +8,16 @@ import time
 import sys
 sys.path.insert(0, '/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash')
 sys.path.insert(0, '/home/darknight/Desktop/Pygames/Yahoo/Games/Football')
+sys.path.insert(0, '/home/darknight/Desktop/Pygames/Yahoo/Games/Archery')
 
 import birdie
 import foot
+import arc
 
 common_path = "/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash/resources/images/"
 
 background = pygame.image.load("main.jpg")
+#menu = pygame.image.load("Menu.png")
 start_screen = pygame.image.load(common_path + "start_game.png")
 
 pygame.init()
@@ -23,6 +26,7 @@ screen = pygame.display.set_mode((width, height))
 
 while 1:
     screen.blit(background, (0, 0))
+    #screen.blit(menu, (400, 10))
     # screen.blit(start_screen, (205, 50))
     pygame.display.flip()
 
@@ -34,6 +38,10 @@ while 1:
     rect2.top = 200
     rect2.left = 500
 
+    rect3 = pygame.Rect((50, 50), (300, 300))
+    rect3.top = 500
+    rect3.left = 900
+
 
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN or event.type == MOUSEBUTTONDOWN:
@@ -41,7 +49,11 @@ while 1:
                 position = pygame.mouse.get_pos()
                 if rect1.collidepoint(position):
                     foot.play()
-                if rect2.collidepoint(position):
-                    birdie.play()
+                elif rect2.collidepoint(position):
+                    birdie.play(pygame.time.get_ticks())
+                elif rect3.collidepoint(position):
+                    arc.play()
+
+    pygame.display.flip()
 
 # birdie.play()

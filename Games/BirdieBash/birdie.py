@@ -18,7 +18,7 @@ def weighted_choice(choices):
     i = bisect.bisect(cum_weights, x)
     return values[i]
 
-def play():
+def play(time_started):
     
 
     scores_file = open('scores.txt', 'ab')
@@ -46,6 +46,10 @@ def play():
     game_over = pygame.image.load(common_path + "game_over.png")
     card = pygame.image.load(common_path + "card.png")
     start_screen = pygame.image.load(common_path + "start_game.png")
+    menu = pygame.image.load("Menu.png")
+    menu_rect = pygame.Rect(menu.get_rect())
+    menu_rect.top = 30
+    menu_rect.left = 610
     birds = []
     for bird_type_number in range(1,4):
         birds.append(pygame.image.load(common_path + "bird" + str(bird_type_number) + ".png"))
@@ -53,10 +57,8 @@ def play():
     for bird_type_number in range(0,3):
         birds.append(pygame.transform.flip(birds[i], True, False))
         i += 1
-
     temp = birds
 
-    print birds
     running = 1
     exitcode = 0
     score = 0
@@ -87,7 +89,8 @@ def play():
             user_score_rect.top = 60
             user_score_rect.left = 145
             screen.blit(user_score, user_score_rect)
-            game_duration = game_time - pygame.time.get_ticks()
+            screen.blit(menu, (610, 30))
+            game_duration = game_time + time_started - pygame.time.get_ticks()
             user_score = 10;
             update_time = 0.005*((game_time - game_duration) / 1000 % 60) + 0.35
             pygame.draw.rect(screen, text_color, (width - ((255.0/game_time)*game_duration + 30), 78, (252.0/game_time)*game_duration, 20))
@@ -165,6 +168,8 @@ def play():
                                 badguy[3] = True
                                 badguy[4] = pygame.time.get_ticks()
                             index += 1
+                        if menu_rect.collidepoint(position):
+                            return
 
             if pygame.time.get_ticks() >= game_time:
                 running = 0
@@ -205,13 +210,16 @@ def play():
                 count += 1
 
             time_spent = round(pygame.time.get_ticks()/1000.0 - time_changed,1)
-            print time_spent
 
 
     if exitcode == 0:
         screen.blit(background, (0, 0))
         screen.blit(game_over, (250, 150))
-        font = pygame.font.Font("resources/fonts/csb.ttf", 45)
+        screen.blit(menu, (610, 30))
+        menu_rect = pygame.Rect(menu.get_rect())
+        menu_rect.top = 30
+        menu_rect.left = 610
+        font = pygame.font.Font("/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash/resources/fonts/csb.ttf", 45)
         scores_file.write(str(score) + "\n")
         score_text = font.render("SCORE : " + str(score), True, text_color)
         scores_file.close()
@@ -220,7 +228,6 @@ def play():
         scores_file.close()
         scores = [score_line.strip() for score_line in scores]
         scores.sort(key=float, reverse = True)
-        print scores
         best_score_text = font.render("BEST SCORE : " + scores[0], True, text_color)
         best_score_rect = best_score_text.get_rect()
         best_score_rect.left = 440
@@ -230,10 +237,24 @@ def play():
         score_text_rect.top = 350
         screen.blit(score_text, score_text_rect)
         screen.blit(best_score_text, best_score_rect)
+        # while 1:
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.KEYDOWN or event.type == MOUSEBUTTONDOWN:
+        #             position = pygame.mouse.get_pos()
+        #             if menu_rect.collidepoint(position):
+        #                 return
 
     while 1:
+        menu_rect = pygame.Rect(menu.get_rect())
+        menu_rect.top = 30
+        menu_rect.left = 610
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit(0)
+            if event.type == pygame.KEYDOWN or event.type == MOUSEBUTTONDOWN:
+                position = pygame.mouse.get_pos()
+                if event.type == MOUSEBUTTONDOWN:
+                    if menu_rect.collidepoint(position):
+                        return
         pygame.display.flip()
