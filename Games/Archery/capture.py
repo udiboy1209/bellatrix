@@ -265,8 +265,13 @@ while running:
         hsv_crop = cv2.cvtColor(cropped_frame, cv2.COLOR_BGR2RGB)
         hsv_pgam = cv2.cvtColor(pygame_frame, cv2.COLOR_BGR2RGB)
         diff_frame = np.abs(hsv_crop-hsv_pgam)
-        thresh = cv2.inRange(diff_frame, np.array([50,50,0],np.uint8),
+        thresh1 = cv2.inRange(diff_frame, np.array([100,100,0],np.uint8),
                     np.array([255,255,255],np.uint8))
+        thresh2 = cv2.inRange(diff_frame, np.array([100,100,0],np.uint8),
+                    np.array([255,255,255],np.uint8))
+        thresh3 = cv2.inRange(diff_frame, np.array([0,50,0],np.uint8),
+                    np.array([255,255,255],np.uint8))
+        thresh = thresh1
         thresh = 255-thresh
         thresh = cv2.dilate(thresh, dilate_kernel)
 
