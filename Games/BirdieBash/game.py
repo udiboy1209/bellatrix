@@ -1,17 +1,30 @@
 import math
 import random
+import bisect
 from os import listdir
 import pygame
 from pygame.locals import *
 import time
+
+
+def weighted_choice(choices):
+    values, weights = zip(*choices)
+    total = 0
+    cum_weights = []
+    for w in weights:
+        total += w
+        cum_weights.append(total)
+    x = random.random() * total
+    i = bisect.bisect(cum_weights, x)
+    return values[i]
 
 scores_file = open('scores.txt', 'ab')
 
 pygame.init()
 width, height = 1280, 960
 screen = pygame.display.set_mode((width, height))
-# x, y, direction, hit or not, hit time
-badguys = [[-50, 450, 2, False, 0]]
+# x, y, direction, hit or not, hit time, bird type
+badguys = [[-50, 450, 2, False, 0, 1]]
 badtimer = 125
 badtimer1 = 0
 
@@ -19,19 +32,25 @@ y_coordinate = 40
 game_time = 60000
 game_start = False
 badguystart = [610, 450, 0, False, 0]
-speed = 2
+speed = [2, 3, 4, 2, 3, 4]
+score_points = [10, 20, 30, 10, 20, 30]
 font = pygame.font.Font("resources/fonts/csb.ttf", 27)
 pygame.font.init()
 
 background = pygame.image.load("resources/images/background.png")
 game_over = pygame.image.load("resources/images/game_over.png")
 card = pygame.image.load("resources/images/card.png")
-birdie1 = pygame.image.load("resources/images/bird1.png")
-rev_birdie1 = pygame.transform.flip(birdie1, True, False)
-birdie2 = pygame.image.load("resources/images/bird2.png")
-rev_birdie2 = pygame.transform.flip(birdie1, True, False)
-birdie3 = pygame.image.load("resources/images/bird3.png")
-rev_birdie3 = pygame.transform.flip(birdie1, True, False)
+birds = []
+for bird_type_number in range(1,4):
+    birds.append(pygame.image.load("resources/images/bird" + str(bird_type_number) + ".png"))
+i = 0
+for bird_type_number in range(0,3):
+    birds.append(pygame.transform.flip(birds[i], True, False))
+    i += 1
+
+temp = birds
+
+print birds
 running = 1
 exitcode = 0
 score = 0
@@ -71,22 +90,28 @@ while running:
         screen.blit(user_score, user_score_rect)
         game_duration = game_time - pygame.time.get_ticks()
         user_score = 10;
-        update_time = 0.01*((game_time - game_duration) / 1000 % 60) + 0.3
+        update_time = 0.005*((game_time - game_duration) / 1000 % 60) + 0.35
         pygame.draw.rect(screen, text_color, (width - ((255.0/game_time)*game_duration + 30), 78, (252.0/game_time)*game_duration, 20))
         badtimer -= update_time
         position = pygame.mouse.get_pos()
         if badtimer <= 0:
             temp = y_coordinate
-            y_coordinate = random.randint(100, height - 100)
-            if y_coordinate <= temp + 100 or y_coordinate >= temp - 100:
-                if y_coordinate <= temp + 100:
-                    if y_coordinate - 100 < 100:
-                        y_coordinate = 100
+            y_coordinate = random.randint(200, height - 200)
+            if y_coordinate <= temp + 200 or y_coordinate >= temp - 200:
+                if y_coordinate <= temp + 200:
+                    if y_coordinate - 200 < 200:
+                        y_coordinate = 200
                 else:
-                    if y_coordinate + 100 > height - 100:
-                        y_coordinate = height - 100
+                    if y_coordinate + 200 > height - 200:
+                        y_coordinate = height - 200
             choice = random.choice(
-                [[width + 30, y_coordinate, 0, False, 0], [-20, y_coordinate, 2, False, 0]])
+                [[width + 30, y_coordinate, 0, False, 0, 1], [-20, y_coordinate, 2, False, 0, 1]])
+
+            if choice[2] == 0:
+                choice[5] = weighted_choice([(4,50), (5,30), (6,20)])
+            if choice[2] == 1:
+                choice[5] = weighted_choice([(1,50), (2,30), (3,20)])
+
             badguys.append(choice)
             badtimer = 125 - (badtimer1 * 2)
             if badtimer1 >= 35:
@@ -109,18 +134,18 @@ while running:
                     badguy[1] += 40*time_elapsed + 0.5*9.8*time_elapsed*time_elapsed
                     badguy[0] -= 3
                 else:
-                    badguy[0] -= speed
+                    badguy[0] -= speed[badguy[5]-1]
 
-                screen.blit(rev_birdie1, (badguy[0], badguy[1]))
+                screen.blit(birds[badguy[5] - 1], (badguy[0], badguy[1]))
             elif badguy[2] == 2:
                 if badguy[3]:
                     time_elapsed = (pygame.time.get_ticks() - badguy[4]) / 1000.00
                     badguy[1] += 40*time_elapsed + 0.5*9.8*time_elapsed*time_elapsed
                     badguy[0] += 3
                 else:
-                    badguy[0] += speed
+                    badguy[0] += speed[badguy[5] - 1]
 
-                screen.blit(birdie1, (badguy[0], badguy[1]))
+                screen.blit(birds[badguy[5] - 1], (badguy[0], badguy[1]))
             index += 1
         pygame.display.flip()
 
@@ -133,11 +158,11 @@ while running:
                     position = pygame.mouse.get_pos()
                     index = 0
                     for badguy in badguys:
-                        badrect = pygame.Rect(birdie1.get_rect())
+                        badrect = pygame.Rect(birds[badguy[5] - 1].get_rect())
                         badrect.top = badguy[1]
                         badrect.left = badguy[0]
                         if badrect.collidepoint(position):
-                            score += 10
+                            score += score_points[badguy[5] - 1]
                             badguy[3] = True
                             badguy[4] = pygame.time.get_ticks()
                         index += 1
@@ -159,7 +184,7 @@ while running:
         if badguystart[3]:
             time_elapsed = (pygame.time.get_ticks() - badguystart[4]) / 1000.00
             badguystart[1] += 40*time_elapsed + 0.5*9.8*time_elapsed*time_elapsed
-        screen.blit(birdie1, (badguystart[0], badguystart[1]))
+        screen.blit(birds[0], (badguystart[0], badguystart[1]))
         pygame.display.flip()
 
 
@@ -170,7 +195,7 @@ while running:
             if event.type == pygame.KEYDOWN or event.type == MOUSEBUTTONDOWN:
                 if event.type == MOUSEBUTTONDOWN:
                     position = pygame.mouse.get_pos()
-                    badrect = pygame.Rect(birdie1.get_rect())
+                    badrect = pygame.Rect(birds[0].get_rect())
                     badrect.top = badguystart[1]
                     badrect.left = badguystart[0]
                     if badrect.collidepoint(position):
