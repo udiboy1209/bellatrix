@@ -10,8 +10,8 @@ import math
 pygame.init()
 cap = cv2.VideoCapture(0)
 
-FINAL_MIN = np.array([0, 210, 0])
-FINAL_MAX = np.array([255, 255, 255])
+FINAL_MIN = np.array([100, 200, 130])
+FINAL_MAX = np.array([200, 255, 200])
 
 (width, height) = (800,600)
 
@@ -21,7 +21,7 @@ pygame.display.set_caption('HackU game')
 
 pygame.display.flip()
 
-MEAN_BOUNDARY_SIZE = 100.0
+MEAN_BOUNDARY_SIZE = 50.0
 sum_boundary = []
 sum_quad = None
 mean_quad = None
@@ -46,10 +46,11 @@ def calibrate_screen(frame):
         im2, contours, hierarchy = cv2.findContours(frame_threshold,
                                     cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
+    cv2.drawContours(frame, contours, -1, (255,0,0), 1)
     screenRect = None
     for contour in contours:
         peri = cv2.arcLength(contour, True)
-        approx = cv2.approxPolyDP(contour, 0.02 * peri, True)
+        approx = cv2.approxPolyDP(contour, 0.02* peri, True)
 
         # if our approximated contour has four points, then
         # we can assume that we have found our screen
@@ -100,7 +101,7 @@ while True:
 
 print "Calibration complete..."
 
-fps = 30
+fps = 22
 t_frame = 1./fps
 curr_frame_delay = 0
 curr_frame_start = 0
@@ -133,28 +134,30 @@ while True:
         # cropped_frame = cv2.resize(cropped_frame,(800,600),
         #             interpolation=cv2.INTER_CUBIC)
         # cropped_frame = cv2.flip(cropped_frame,0)
+        color = (100,100,100)
+
         screen.fill((255, 255, 255))
-        pygame.draw.circle(screen,(240,240,240),(400,300),200,3)
-        pygame.draw.circle(screen,(240,240,240),(400,300),100)
-        pygame.draw.line(screen,(240,240,240),(200,300),(600,300),3)
-        pygame.draw.line(screen,(240,240,240),(400,100),(400,500),3)
+        pygame.draw.line(screen,color,(200,300),(600,300),3)
+        pygame.draw.line(screen,color,(400,100),(400,500),3)
+        pygame.draw.circle(screen,color,(400,300),200,3)
+        pygame.draw.circle(screen,(200,200,200),(400,300),100)
         if max_hit:
             pygame.draw.circle(screen, (0, 0, 255),
                                (int(max_hit.pt[0]),int(max_hit.pt[1])),
                                int(max_hit.size/2))
-        label_full = myfont.render("%d" % 100, 1, (200,200,200))
+        label_full = myfont.render("%d" % 100, 1, color)
         screen.blit(label_full, (362.5, 275))
 
-        label_1 = myfont.render("%d" % 40, 1, (200,200,200))
+        label_1 = myfont.render("%d" % 40, 1, color)
         screen.blit(label_1, (275, 375))
-        label_2 = myfont.render("%d" % 60, 1, (200,200,200))
+        label_2 = myfont.render("%d" % 60, 1, color)
         screen.blit(label_2, (275, 175))
-        label_3 = myfont.render("%d" % 20, 1, (200,200,200))
+        label_3 = myfont.render("%d" % 20, 1, color)
         screen.blit(label_3, (475, 375))
-        label_4 = myfont.render("%d" % 80, 1, (200,200,200))
+        label_4 = myfont.render("%d" % 80, 1, color)
         screen.blit(label_4, (475, 175))
 
-        label_score = myfont.render("SCORE: %d" % score, 1, (175,175,175))
+        label_score = myfont.render("SCORE: %d" % score, 1, color)
         screen.blit(label_score, (480, 50))
 
 
@@ -237,6 +240,7 @@ while True:
         break
     if cv2key & 0xFF == ord('c'):
         kptrace = []
+        score = 0
 
         # fn = (fn+1)%10
 
