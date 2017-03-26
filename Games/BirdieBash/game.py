@@ -32,6 +32,7 @@ y_coordinate = 40
 game_time = 60000
 game_start = False
 badguystart = [610, 450, 0, False, 0]
+gif_times = [0.1,0.1,0.1,0.2,0.2,0.2,0.1,0.1,0.1,0.1,0.2,0.2,0.2,0.2]
 speed = [2, 3, 4, 2, 3, 4]
 score_points = [10, 20, 30, 10, 20, 30]
 font = pygame.font.Font("resources/fonts/csb.ttf", 27)
@@ -40,6 +41,7 @@ pygame.font.init()
 background = pygame.image.load("resources/images/background.png")
 game_over = pygame.image.load("resources/images/game_over.png")
 card = pygame.image.load("resources/images/card.png")
+start_screen = pygame.image.load("resources/images/start_game.png")
 birds = []
 for bird_type_number in range(1,4):
     birds.append(pygame.image.load("resources/images/bird" + str(bird_type_number) + ".png"))
@@ -54,11 +56,12 @@ print birds
 running = 1
 exitcode = 0
 score = 0
+time_spent = 0
+time_changed = 0.0
 
 text_color = (195, 0, 1)
 
 gbird_images_list = []
-rev_count = False
 
 gbird_images = [f for f in listdir("resources/images/gbird")]
 index = 0
@@ -67,6 +70,8 @@ for img in gbird_images:
     index += 1
 
 gbird_image_index = 0
+count = 1
+time_spent = 0
 while running:
     screen.fill(0)
     screen.blit(background, (0, 0))
@@ -171,15 +176,13 @@ while running:
             running = 0
             exitcode = 0
     else:
-        text = font.render("Hit the bird to start the game!", True, (255, 255, 255))
-        textRect = text.get_rect()
-        # screen.blit(gbird_images_list[gbird_image_index], (50, 50))
-        textRect.centerx = screen.get_rect().centerx
-        textRect.centery = screen.get_rect().centery - 100
-        screen.blit(text, textRect)
+        screen.blit(start_screen, (205, 50))
         if badguystart[1] > height + 60:
                 game_time = game_time + pygame.time.get_ticks()
                 game_start = True
+
+        # screen.blit(gbird_images_list[gbird_image_index], (badguystart[0], badguystart[1]))
+        # screen.display.flip()
 
         if badguystart[3]:
             time_elapsed = (pygame.time.get_ticks() - badguystart[4]) / 1000.00
@@ -201,14 +204,14 @@ while running:
                     if badrect.collidepoint(position):
                         badguystart[3] = True
                         badguystart[4] = pygame.time.get_ticks()
-        if rev_count:
-            gbird_image_index -= 1
-            if gbird_image_index == 0:
-                rev_count = False
-        else:
-            gbird_image_index += 1
-            if gbird_image_index == (len(gbird_images_list) - 1):
-                rev_count = True
+
+        if (time_spent == gif_times[count]):
+            time_changed = round(pygame.time.get_ticks()/1000.0,1)
+            gbird_image_index = (gbird_image_index + 1) % 14
+            count += 1
+
+        time_spent = round(pygame.time.get_ticks()/1000.0 - time_changed,1)
+        print time_spent
 
 
 if exitcode == 0:
