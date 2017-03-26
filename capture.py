@@ -5,6 +5,7 @@ import numpy as np
 import pygame
 from pygame import surfarray
 import time
+import math
 
 pygame.init()
 cap = cv2.VideoCapture(0)
@@ -105,7 +106,7 @@ curr_frame_delay = 0
 curr_frame_start = 0
 skip_render = False
 execute = True
-fn = 0
+score = 0
 
 kptrace = []
 
@@ -133,12 +134,28 @@ while True:
         #             interpolation=cv2.INTER_CUBIC)
         # cropped_frame = cv2.flip(cropped_frame,0)
         screen.fill((255, 255, 255))
+        pygame.draw.circle(screen,(240,240,240),(400,300),200,3)
+        pygame.draw.circle(screen,(240,240,240),(400,300),100)
+        pygame.draw.line(screen,(240,240,240),(200,300),(600,300),3)
+        pygame.draw.line(screen,(240,240,240),(400,100),(400,500),3)
         if max_hit:
             pygame.draw.circle(screen, (0, 0, 255),
                                (int(max_hit.pt[0]),int(max_hit.pt[1])),
                                int(max_hit.size/2))
-        # label = myfont.render("%d" % fn, 1, (255,255,0))
-        # screen.blit(label, (100, 100))
+        label_full = myfont.render("%d" % 100, 1, (200,200,200))
+        screen.blit(label_full, (362.5, 275))
+
+        label_1 = myfont.render("%d" % 40, 1, (200,200,200))
+        screen.blit(label_1, (275, 375))
+        label_2 = myfont.render("%d" % 60, 1, (200,200,200))
+        screen.blit(label_2, (275, 175))
+        label_3 = myfont.render("%d" % 20, 1, (200,200,200))
+        screen.blit(label_3, (475, 375))
+        label_4 = myfont.render("%d" % 80, 1, (200,200,200))
+        screen.blit(label_4, (475, 175))
+
+        label_score = myfont.render("SCORE: %d" % score, 1, (175,175,175))
+        screen.blit(label_score, (480, 50))
 
 
         # render
@@ -174,12 +191,33 @@ while True:
             nfcount = 0
         else:
             nfcount = nfcount + 1
-            if nfcount>5:
+            if nfcount>10:
                 nfcount = 0
                 if len(kptrace) > 0:
                     max_hit = max(kptrace, key=lambda x:x.size)
                     kptrace = []
                     print("%s - %d" % (max_hit.pt, max_hit.size))
+                    angle = math.degrees(math.atan2(max_hit.pt[1]-300.,max_hit.pt[0]-400.))
+                    angle = (angle+360.)%360.
+                    distance = math.sqrt((max_hit.pt[1]-300.0)**2+(max_hit.pt[0]-400.0)**2)
+                    if distance<100:
+                        score = score+100
+                    elif distance<200:
+                        if angle>0 and angle<90:
+                            score = score + 20
+                        elif angle>90 and angle<180:
+                            score = score + 40
+                        elif angle>180 and angle<270:
+                            score = score + 60
+                        elif angle>270 and angle<360:
+                            score = score + 80
+                        else:
+                            score = score + 0
+
+                    else:
+                        score = score + 0
+
+
 
         im_with_keypoints = cv2.drawKeypoints(cropped_frame, kptrace,
                     np.array([]), (0,0,255),
