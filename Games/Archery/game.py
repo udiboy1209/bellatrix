@@ -7,14 +7,14 @@ from pygame.locals import *
 import time
 
 def get_sector(x,y):
-    center_x = 635.0
-    center_y = 555.0
+    center_x = 395.0
+    center_y = 350.0
     slope = 90
     distance = ((y-center_y)**2+(x-center_x)**2)**0.5
     if (center_x-x != 0): slope = math.degrees(math.atan2((y-center_y),(x-center_x)))
     print(distance,slope)
-    if(distance<=133): return 7
-    if(distance<=297):
+    if(distance<=71): return 7
+    if(distance<=165):
         if(slope>=30 and slope<=90):return 3
         if(slope>=90 and slope<=150):return 4
         if(slope>=-30 and slope<=30):return 2
@@ -47,7 +47,7 @@ def weighted_choice(choices):
 scores_file = open('scores.txt', 'ab')
 
 pygame.init()
-width, height = 1280, 960
+width, height = 800, 600
 screen = pygame.display.set_mode((width, height))
 # x, y, direction, hit or not, hit time, bird type
 badguys = [[-50, 450, 2, False, 0, 1]]
@@ -116,7 +116,7 @@ while running:
         if event.type == pygame.QUIT:
             pygame.quit()
             exit(0)
-        if event.type == pygame.KEYDOWN or event.type == MOUSEBUTTONDOWN:
+        if event.type == MOUSEBUTTONDOWN:
             shots -= 1
             if event.type == MOUSEBUTTONDOWN:
                 position = pygame.mouse.get_pos()
@@ -130,7 +130,7 @@ while running:
 
 if exitcode == 0:
     screen.blit(background, (0, 0))
-    screen.blit(game_over, (250, 150))
+    screen.blit(game_over, (170, 110))
     font = pygame.font.Font("resources/fonts/csb.ttf", 45)
     scores_file.write(str(score) + "\n")
     score_text = font.render("SCORE : " + str(score), True, text_color)
@@ -143,11 +143,11 @@ if exitcode == 0:
     print scores
     best_score_text = font.render("BEST SCORE : " + scores[0], True, text_color)
     best_score_rect = best_score_text.get_rect()
-    best_score_rect.left = 440
-    best_score_rect.top = 440
+    best_score_rect.left = 195
+    best_score_rect.top = 300
     score_text_rect = score_text.get_rect()
-    score_text_rect.left = 520
-    score_text_rect.top = 350
+    score_text_rect.left = 275
+    score_text_rect.top = 210
     screen.blit(score_text, score_text_rect)
     screen.blit(best_score_text, best_score_rect)
 
