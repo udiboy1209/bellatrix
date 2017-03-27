@@ -17,10 +17,10 @@ def play():
 
     game_time = 10000000000
     game_start = True
-    font = pygame.font.Font("/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash/resources/fonts/csb.ttf", 27)
+    font = pygame.font.Font("./Football/resources/fonts/csb.ttf", 27)
     pygame.font.init()
 
-    common_path = "/home/darknight/Desktop/Pygames/Yahoo/Games/Football/resources/images/"
+    common_path = "./Football/resources/images/"
 
     background = pygame.image.load(common_path + "background.jpg")
     gk_ready = pygame.image.load(common_path + "ready.png")
@@ -204,7 +204,7 @@ def play():
     if exitcode == 0:
         screen.blit(background, (0, 0))
         screen.blit(game_over, (250, 150))
-        font = pygame.font.Font("/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash/resources/fonts/csb.ttf", 45)
+        font = pygame.font.Font("./Football/resources/fonts/csb.ttf", 45)
         scores_file.write(str(score) + "\n")
         score_text = font.render("SCORE : " + str(score), True, text_color)
         scores_file.close()

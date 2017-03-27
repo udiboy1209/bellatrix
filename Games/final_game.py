@@ -6,15 +6,15 @@ import pygame
 from pygame.locals import *
 import time
 import sys
-sys.path.insert(0, '/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash')
-sys.path.insert(0, '/home/darknight/Desktop/Pygames/Yahoo/Games/Football')
-sys.path.insert(0, '/home/darknight/Desktop/Pygames/Yahoo/Games/Archery')
+sys.path.insert(0, './BirdieBash')
+sys.path.insert(0, './Football')
+sys.path.insert(0, './Archery')
 
 import birdie
 import foot
 import arc
 
-common_path = "/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash/resources/images/"
+common_path = "./BirdieBash/resources/images/"
 
 background = pygame.image.load("main.jpg")
 #menu = pygame.image.load("Menu.png")

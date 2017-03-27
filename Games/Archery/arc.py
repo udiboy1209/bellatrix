@@ -6,7 +6,7 @@ import pygame
 from pygame.locals import *
 import time
 
-common_path = "/home/darknight/Desktop/Pygames/Yahoo/Games/Archery/resources/images/"
+common_path = "./Archery/resources/images/"
 
 def get_sector(x,y):
     center_x = 635.0
@@ -62,7 +62,7 @@ def play():
     badguystart = [610, 450, 0, False, 0]
     speed = [2, 3, 4, 2, 3, 4]
     score_points = [10, 20, 30, 10, 20, 30]
-    font = pygame.font.Font("/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash/resources/fonts/csb.ttf", 27)
+    font = pygame.font.Font("./Archery/resources/fonts/csb.ttf", 27)
     pygame.font.init()
 
     background = pygame.image.load(common_path + "Archery-Bg.jpg")
@@ -133,7 +133,7 @@ def play():
     if exitcode == 0:
         screen.blit(background, (0, 0))
         screen.blit(game_over, (250, 150))
-        font = pygame.font.Font("/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash/resources/fonts/csb.ttf", 45)
+        font = pygame.font.Font("./Archery/resources/fonts/csb.ttf", 45)
         scores_file.write(str(score) + "\n")
         screen.blit(menu, (610, 30))
         score_text = font.render("SCORE : " + str(score), True, text_color)

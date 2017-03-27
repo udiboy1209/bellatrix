@@ -38,8 +38,8 @@ def play(time_started):
     gif_times = [0.1,0.1,0.1,0.2,0.2,0.2,0.1,0.1,0.1,0.1,0.2,0.2,0.2,0.2]
     speed = [2, 3, 4, 2, 3, 4]
     score_points = [10, 20, 30, 10, 20, 30]
-    common_path = "/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash/resources/images/"
-    font = pygame.font.Font("/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash/resources/fonts/csb.ttf", 27)
+    common_path = "./BirdieBash/resources/images/"
+    font = pygame.font.Font("./BirdieBash/resources/fonts/csb.ttf", 27)
     pygame.font.init()
 
     background = pygame.image.load(common_path + "background.png")
@@ -219,7 +219,7 @@ def play(time_started):
         menu_rect = pygame.Rect(menu.get_rect())
         menu_rect.top = 30
         menu_rect.left = 610
-        font = pygame.font.Font("/home/darknight/Desktop/Pygames/Yahoo/Games/BirdieBash/resources/fonts/csb.ttf", 45)
+        font = pygame.font.Font("./BirdieBash/resources/fonts/csb.ttf", 45)
         scores_file.write(str(score) + "\n")
         score_text = font.render("SCORE : " + str(score), True, text_color)
         scores_file.close()
